@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleGenAI } from "@google/genai";
 import Markdown from 'react-markdown';
@@ -15,6 +15,10 @@ import {
   Play,
   Share2,
   MessageCircle,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Volume2,
   ArrowLeft,
   ExternalLink,
   Send,
@@ -222,16 +226,25 @@ const ClipCard = ({
   onToggleSave: () => void;
 }) => (
   <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-6">
-    <div className="relative aspect-video bg-slate-200" onClick={onOpen}>
-      {story.thumbnail && <img src={story.thumbnail} alt={story.headline} className="w-full h-full object-cover" />}
+    <div className="relative aspect-video bg-slate-900" onClick={onOpen}>
+      {story.thumbnail && (
+        <img 
+          src={story.thumbnail} 
+          alt={story.headline} 
+          className="w-full h-full object-cover opacity-60" 
+        />
+      )}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="bg-white/90 p-3 rounded-full shadow-lg">
-          <Play fill="#0A1628" size={24} />
+        <div className="bg-white/20 backdrop-blur-md p-4 rounded-full border border-white/30">
+          <Play fill="white" size={32} className="text-white" />
         </div>
+      </div>
+      <div className="absolute bottom-4 left-4 px-2 py-1 bg-black/60 backdrop-blur-md rounded-lg text-[10px] font-black text-white uppercase tracking-widest">
+        60s
       </div>
       <button 
         onClick={(e) => { e.stopPropagation(); onToggleSave(); }}
-        className={`absolute top-4 right-4 p-2 rounded-full shadow-md backdrop-blur-md transition-all ${isSaved ? 'bg-soch-blue text-white' : 'bg-white/80 text-navy-deep'}`}
+        className={`absolute top-4 right-4 p-2 rounded-full shadow-md backdrop-blur-md transition-all ${isSaved ? 'bg-soch-blue text-white' : 'bg-white/20 text-white border border-white/30'}`}
       >
         <Bookmark size={20} fill={isSaved ? "currentColor" : "none"} />
       </button>
@@ -300,6 +313,118 @@ const BriefCard = ({
   );
 };
 
+// --- Clip View ---
+
+const Waveform = ({ isPlaying }: { isPlaying: boolean }) => {
+  return (
+    <div className="flex items-center justify-center gap-1 h-20">
+      {[...Array(12)].map((_, i) => (
+        <motion.div
+          key={i}
+          animate={{
+            height: isPlaying ? [10, 40, 15, 35, 10][i % 5] : 4
+          }}
+          transition={{
+            duration: 0.8,
+            repeat: Infinity,
+            delay: i * 0.05,
+            ease: "easeInOut"
+          }}
+          className="w-1.5 bg-soch-blue rounded-full"
+        />
+      ))}
+    </div>
+  );
+};
+
+const ClipView = ({ 
+  story, 
+  onClose, 
+  onAskSochX, 
+  isSaved, 
+  onToggleSave 
+}: { 
+  story: Story; 
+  onClose: () => void; 
+  onAskSochX: () => void;
+  isSaved: boolean;
+  onToggleSave: () => void;
+}) => {
+  const [isPlaying, setIsPlaying] = useState(true);
+
+  return (
+    <motion.div 
+      initial={{ y: '100%' }}
+      animate={{ y: 0 }}
+      exit={{ y: '100%' }}
+      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+      className="fixed inset-0 bg-navy-deep z-[150] flex flex-col text-white"
+    >
+      <div className="p-4 flex justify-between items-center border-b border-white/10">
+        <button onClick={onClose} className="p-2 text-white"><ArrowLeft /></button>
+        <Logo size="sm" />
+        <div className="flex gap-2">
+          <button 
+            onClick={onToggleSave} 
+            className={`p-2 rounded-full transition-all ${isSaved ? 'text-soch-blue' : 'text-white/60'}`}
+          >
+            <Bookmark size={24} fill={isSaved ? "currentColor" : "none"} />
+          </button>
+          <button className="p-2 text-white/60"><Share2 /></button>
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col p-8 items-center justify-center text-center">
+        <div className="mb-12">
+          <Waveform isPlaying={isPlaying} />
+        </div>
+        
+        <div className="inline-block px-3 py-1 bg-soch-blue/20 text-soch-blue text-[10px] font-black rounded-full mb-6 uppercase tracking-widest">
+          {story.topic}
+        </div>
+        
+        <h1 className="text-3xl font-black leading-tight mb-8">{story.headline}</h1>
+        
+        <div className="max-h-[30vh] overflow-y-auto mb-8 px-4">
+          <p className="text-lg text-slate-300 leading-relaxed font-medium">
+            {story.summary}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 mb-12">
+          <div className="w-10 h-10 rounded-full bg-white/10" />
+          <div className="text-left">
+            <div className="font-bold text-sm">{story.author}</div>
+            <div className="text-[10px] text-white/40 font-bold uppercase tracking-wider">{story.source} • {story.timestamp}</div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-8">
+          <button className="p-4 text-white/40"><SkipBack size={32} /></button>
+          <button 
+            onClick={() => setIsPlaying(!isPlaying)}
+            className="w-20 h-20 bg-soch-blue rounded-full flex items-center justify-center shadow-2xl shadow-soch-blue/40"
+          >
+            {isPlaying ? <Pause size={32} fill="white" /> : <Play size={32} fill="white" className="ml-1" />}
+          </button>
+          <button className="p-4 text-white/40"><SkipForward size={32} /></button>
+        </div>
+      </div>
+
+      <div className="p-6 border-t border-white/10">
+        <button 
+          onClick={onAskSochX}
+          className="w-full bg-white/5 border border-white/10 rounded-full py-4 px-6 flex items-center gap-3"
+        >
+          <div className="w-6 h-6 bg-soch-blue rounded-lg flex items-center justify-center text-white font-black text-[10px]">X</div>
+          <span className="text-white/40 font-bold text-sm">Ask Soch X about this clip...</span>
+          <Send size={18} className="ml-auto text-soch-blue" />
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
 // --- Story View ---
 
 const StoryView = ({ 
@@ -316,6 +441,18 @@ const StoryView = ({
   onToggleSave: () => void;
 }) => {
   const [activeTab, setActiveTab] = useState<'facts' | 'perspectives'>('facts');
+
+  if (story.type === 'clip') {
+    return (
+      <ClipView 
+        story={story} 
+        onClose={onClose} 
+        onAskSochX={onAskSochX} 
+        isSaved={isSaved} 
+        onToggleSave={onToggleSave} 
+      />
+    );
+  }
 
   return (
     <motion.div 
@@ -1510,6 +1647,23 @@ export default function App() {
     );
   };
 
+  const feedStories = useMemo(() => {
+    const result: Story[] = [];
+    let briefIndex = 0;
+    
+    // We want a sequence like: B, B, C, B, B, C ...
+    for (let i = 0; i < 12; i++) {
+      const story = SEED_STORIES[briefIndex % SEED_STORIES.length];
+      if ((i + 1) % 3 === 0) {
+        result.push({ ...story, type: 'clip', id: `${story.id}-clip-${i}` });
+      } else {
+        result.push({ ...story, type: 'brief', id: `${story.id}-brief-${i}` });
+        briefIndex++;
+      }
+    }
+    return result;
+  }, []);
+
   if (showOnboarding) {
     return <Onboarding onComplete={handleOnboardingComplete} />;
   }
@@ -1550,7 +1704,7 @@ export default function App() {
             <DigitalRupeeTracker />
             <HimalayanMeltRate />
 
-            {SEED_STORIES.map(story => (
+            {feedStories.map(story => (
               <div key={`story-${story.id}`}>
                 {story.type === 'clip' ? (
                   <ClipCard 

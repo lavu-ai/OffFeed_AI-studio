@@ -94,6 +94,17 @@ export interface BriefMeRequest {
   content?: string;
 }
 
+export interface VideoGenerationRequest {
+  id: string;
+  prompt: string;
+  status: 'idle' | 'pending' | 'polling' | 'completed' | 'failed';
+  progressMessage?: string;
+  videoUrl?: string;
+  aspectRatio: '16:9' | '9:16';
+  resolution: '720p' | '1080p';
+  error?: string;
+}
+
 export interface UserProfile {
   username: string;
   useCase: UseCase;
