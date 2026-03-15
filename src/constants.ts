@@ -171,7 +171,7 @@ export const DEFAULT_USER: UserProfile = {
       { topic: 'Environment', percentage: 30 }
     ],
     formatSplit: { briefs: 65, clips: 35 },
-    askOConversations: 24,
+    askSochXConversations: 24,
     factChecksRun: 12
   }
 };

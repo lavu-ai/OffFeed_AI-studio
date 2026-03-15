@@ -31,65 +31,14 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { Topic, UseCase, Story, UserProfile, Message, LocalImpact, BriefMeRequest, SimulationScenario } from './types';
-import { TOPICS, DEFAULT_USER } from './constants';
+import { TOPICS, SEED_STORIES, DEFAULT_USER } from './constants';
 import { SCENARIOS } from './seedData';
-
-const RSS_FEEDS = [
-  { name: 'Scroll.in', url: 'https://scroll.in/feed' },
-  { name: 'The Wire', url: 'https://thewire.in/rss' },
-  { name: 'NDTV', url: 'https://feeds.feedburner.com/ndtvnews-top-stories' }
-];
-
-const parseRSS = (xmlText: string, sourceName: string): Story[] => {
-  const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-  const items = xmlDoc.querySelectorAll("item");
-  
-  return Array.from(items).map((item, index) => {
-    const title = item.querySelector("title")?.textContent || "";
-    const description = item.querySelector("description")?.textContent || "";
-    const link = item.querySelector("link")?.textContent || "";
-    const pubDate = item.querySelector("pubDate")?.textContent || "";
-    
-    // Clean up description (remove HTML tags)
-    const cleanDescription = description.replace(/<[^>]*>?/gm, '').trim();
-    
-    // Format timestamp
-    const date = new Date(pubDate);
-    const timeAgo = isNaN(date.getTime()) ? "Recently" : date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-
-    return {
-      id: `${sourceName}-${index}-${Date.now()}`,
-      type: 'brief',
-      topic: 'Indian Politics', // Default topic
-      headline: title,
-      summary: cleanDescription,
-      source: sourceName,
-      author: sourceName,
-      timestamp: timeAgo,
-      sources: [{ name: sourceName, url: link }],
-      perspectives: {
-        panelA: {
-          label: 'Context',
-          content: cleanDescription,
-          source: sourceName
-        },
-        panelB: {
-          label: 'Analysis',
-          content: 'AI-generated analysis pending for this real-time story.',
-          source: 'OffFeed AI'
-        }
-      }
-    };
-  });
-};
 
 // --- Components ---
 
 const Logo = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => (
   <div className={`font-black tracking-tighter ${size === 'sm' ? 'text-lg' : size === 'lg' ? 'text-3xl' : 'text-2xl'}`}>
-    <span className="text-navy-deep">Off</span>
-    <span className="text-offfeed-blue">Feed</span>
+    <span className="text-soch-blue">Soch</span>
   </div>
 );
 
@@ -108,9 +57,9 @@ const Button = ({
 }) => {
   const baseStyles = "flex items-center justify-center rounded-xl font-bold transition-all active:scale-95 px-6 py-4";
   const variants = {
-    primary: "bg-offfeed-blue text-white shadow-lg shadow-offfeed-blue/20 disabled:bg-slate-300 disabled:shadow-none",
+    primary: "bg-soch-blue text-white shadow-lg shadow-soch-blue/20 disabled:bg-slate-300 disabled:shadow-none",
     secondary: "bg-navy-deep text-white",
-    outline: "border-2 border-offfeed-blue text-offfeed-blue",
+    outline: "border-2 border-soch-blue text-soch-blue",
     ghost: "text-slate-500"
   };
 
@@ -178,14 +127,14 @@ const Onboarding = ({ onComplete }: { onComplete: (profile: Partial<UserProfile>
                   }}
                   className={`p-4 rounded-[24px] border-2 transition-all cursor-pointer flex flex-col justify-between h-32 relative ${
                     selectedTopics.includes(topic) 
-                      ? 'border-offfeed-blue bg-offfeed-blue/5' 
+                      ? 'border-soch-blue bg-soch-blue/5' 
                       : 'border-slate-100 bg-slate-50 hover:border-slate-200'
                   }`}
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${selectedTopics.includes(topic) ? 'bg-offfeed-blue text-white' : 'bg-white text-slate-300'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${selectedTopics.includes(topic) ? 'bg-soch-blue text-white' : 'bg-white text-slate-300'}`}>
                     {selectedTopics.includes(topic) ? <Check size={16} /> : <div className="w-2 h-2 rounded-full bg-current" />}
                   </div>
-                  <div className={`font-black text-sm leading-tight ${selectedTopics.includes(topic) ? 'text-offfeed-blue' : 'text-navy-deep'}`}>
+                  <div className={`font-black text-sm leading-tight ${selectedTopics.includes(topic) ? 'text-soch-blue' : 'text-navy-deep'}`}>
                     {topic}
                   </div>
                 </div>
@@ -217,11 +166,11 @@ const Onboarding = ({ onComplete }: { onComplete: (profile: Partial<UserProfile>
                   onClick={() => setUseCase(item.title as UseCase)}
                   className={`p-5 rounded-[24px] border-2 transition-all cursor-pointer flex items-center gap-4 ${
                     useCase === item.title 
-                      ? 'border-offfeed-blue bg-offfeed-blue/5' 
+                      ? 'border-soch-blue bg-soch-blue/5' 
                       : 'border-slate-100 bg-slate-50 hover:border-slate-200'
                   }`}
                 >
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 ${useCase === item.title ? 'border-offfeed-blue bg-offfeed-blue' : 'border-slate-200'}`}>
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 ${useCase === item.title ? 'border-soch-blue bg-soch-blue' : 'border-slate-200'}`}>
                     {useCase === item.title && <div className="w-2 h-2 rounded-full bg-white" />}
                   </div>
                   <div>
@@ -248,7 +197,7 @@ const Onboarding = ({ onComplete }: { onComplete: (profile: Partial<UserProfile>
           {[1, 2].map(i => (
             <div 
               key={`dot-${i}`} 
-              className={`h-1.5 rounded-full transition-all ${step === i ? 'w-8 bg-offfeed-blue' : 'w-1.5 bg-slate-200'}`} 
+              className={`h-1.5 rounded-full transition-all ${step === i ? 'w-8 bg-soch-blue' : 'w-1.5 bg-slate-200'}`} 
             />
           ))}
         </div>
@@ -262,13 +211,13 @@ const Onboarding = ({ onComplete }: { onComplete: (profile: Partial<UserProfile>
 const ClipCard = ({ 
   story, 
   onOpen, 
-  onAskO, 
+  onAskSochX, 
   isSaved, 
   onToggleSave 
 }: { 
   story: Story; 
   onOpen: () => void; 
-  onAskO: () => void;
+  onAskSochX: () => void;
   isSaved: boolean;
   onToggleSave: () => void;
 }) => (
@@ -282,13 +231,13 @@ const ClipCard = ({
       </div>
       <button 
         onClick={(e) => { e.stopPropagation(); onToggleSave(); }}
-        className={`absolute top-4 right-4 p-2 rounded-full shadow-md backdrop-blur-md transition-all ${isSaved ? 'bg-offfeed-blue text-white' : 'bg-white/80 text-navy-deep'}`}
+        className={`absolute top-4 right-4 p-2 rounded-full shadow-md backdrop-blur-md transition-all ${isSaved ? 'bg-soch-blue text-white' : 'bg-white/80 text-navy-deep'}`}
       >
         <Bookmark size={20} fill={isSaved ? "currentColor" : "none"} />
       </button>
     </div>
     <div className="p-5">
-      <div className="inline-block px-3 py-1 bg-offfeed-blue/10 text-offfeed-blue text-xs font-black rounded-full mb-3">
+      <div className="inline-block px-3 py-1 bg-soch-blue/10 text-soch-blue text-xs font-black rounded-full mb-3">
         {story.topic.toUpperCase()}
       </div>
       <h3 className="text-xl font-black leading-tight mb-2" onClick={onOpen}>{story.headline}</h3>
@@ -296,23 +245,9 @@ const ClipCard = ({
         <span>{story.source}</span>
         <span className="mx-2">•</span>
         <span>{story.timestamp}</span>
-        {story.sources[0]?.url && (
-          <>
-            <span className="mx-2">•</span>
-            <a 
-              href={story.sources[0].url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-offfeed-blue hover:underline flex items-center gap-1"
-              onClick={(e) => e.stopPropagation()}
-            >
-              Original <ExternalLink size={10} />
-            </a>
-          </>
-        )}
       </div>
-      <Button variant="outline" onClick={onAskO} className="w-full py-3 text-sm">
-        Ask O
+      <Button variant="outline" onClick={onAskSochX} className="w-full py-3 text-sm">
+        Ask Soch X
       </Button>
     </div>
   </div>
@@ -321,13 +256,13 @@ const ClipCard = ({
 const BriefCard = ({ 
   story, 
   onOpen, 
-  onAskO, 
+  onAskSochX, 
   isSaved, 
   onToggleSave 
 }: { 
   story: Story; 
   onOpen: () => void; 
-  onAskO: () => void;
+  onAskSochX: () => void;
   isSaved: boolean;
   onToggleSave: () => void;
 }) => {
@@ -335,12 +270,12 @@ const BriefCard = ({
     <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-5 mb-6 relative">
       <button 
         onClick={(e) => { e.stopPropagation(); onToggleSave(); }}
-        className={`absolute top-5 right-5 p-2 rounded-full transition-all ${isSaved ? 'text-offfeed-blue' : 'text-slate-300'}`}
+        className={`absolute top-5 right-5 p-2 rounded-full transition-all ${isSaved ? 'text-soch-blue' : 'text-slate-300'}`}
       >
         <Bookmark size={20} fill={isSaved ? "currentColor" : "none"} />
       </button>
 
-      <div className="inline-block px-3 py-1 bg-offfeed-blue/10 text-offfeed-blue text-xs font-black rounded-full mb-3">
+      <div className="inline-block px-3 py-1 bg-soch-blue/10 text-soch-blue text-xs font-black rounded-full mb-3">
         {story.topic.toUpperCase()}
       </div>
       <h3 className="text-2xl font-black leading-tight mb-3" onClick={onOpen}>{story.headline}</h3>
@@ -349,22 +284,8 @@ const BriefCard = ({
         <span>{story.source}</span>
         <span className="mx-2">•</span>
         <span>{story.timestamp}</span>
-        {story.sources[0]?.url && (
-          <>
-            <span className="mx-2">•</span>
-            <a 
-              href={story.sources[0].url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-offfeed-blue hover:underline flex items-center gap-1"
-              onClick={(e) => e.stopPropagation()}
-            >
-              Original <ExternalLink size={10} />
-            </a>
-          </>
-        )}
         <div className="ml-auto flex gap-2">
-          <span className="flex items-center gap-1 text-offfeed-blue">
+          <span className="flex items-center gap-1 text-soch-blue">
             <CheckCircle2 size={12} /> Factual
           </span>
           <span className="flex items-center gap-1">
@@ -372,8 +293,8 @@ const BriefCard = ({
           </span>
         </div>
       </div>
-      <Button variant="outline" onClick={onAskO} className="w-full py-3 text-sm">
-        Ask O
+      <Button variant="outline" onClick={onAskSochX} className="w-full py-3 text-sm">
+        Ask Soch X
       </Button>
     </div>
   );
@@ -384,13 +305,13 @@ const BriefCard = ({
 const StoryView = ({ 
   story, 
   onClose, 
-  onAskO, 
+  onAskSochX, 
   isSaved, 
   onToggleSave 
 }: { 
   story: Story; 
   onClose: () => void; 
-  onAskO: () => void;
+  onAskSochX: () => void;
   isSaved: boolean;
   onToggleSave: () => void;
 }) => {
@@ -410,7 +331,7 @@ const StoryView = ({
         <div className="flex gap-2">
           <button 
             onClick={onToggleSave} 
-            className={`p-2 rounded-full transition-all ${isSaved ? 'text-offfeed-blue' : 'text-slate-400'}`}
+            className={`p-2 rounded-full transition-all ${isSaved ? 'text-soch-blue' : 'text-slate-400'}`}
           >
             <Bookmark size={24} fill={isSaved ? "currentColor" : "none"} />
           </button>
@@ -431,13 +352,13 @@ const StoryView = ({
         <div className="flex border-b border-slate-100 mb-8">
           <button 
             onClick={() => setActiveTab('facts')}
-            className={`flex-1 py-3 font-black text-sm uppercase tracking-widest ${activeTab === 'facts' ? 'text-offfeed-blue border-b-4 border-offfeed-blue' : 'text-slate-400'}`}
+            className={`flex-1 py-3 font-black text-sm uppercase tracking-widest ${activeTab === 'facts' ? 'text-soch-blue border-b-4 border-soch-blue' : 'text-slate-400'}`}
           >
             Facts
           </button>
           <button 
             onClick={() => setActiveTab('perspectives')}
-            className={`flex-1 py-3 font-black text-sm uppercase tracking-widest ${activeTab === 'perspectives' ? 'text-offfeed-blue border-b-4 border-offfeed-blue' : 'text-slate-400'}`}
+            className={`flex-1 py-3 font-black text-sm uppercase tracking-widest ${activeTab === 'perspectives' ? 'text-soch-blue border-b-4 border-soch-blue' : 'text-slate-400'}`}
           >
             Perspectives
           </button>
@@ -452,17 +373,17 @@ const StoryView = ({
               exit={{ opacity: 0, y: -10 }}
             >
               <div className="mb-8">
-                <div className="text-xs font-black text-offfeed-blue uppercase tracking-widest mb-4">The Facts</div>
+                <div className="text-xs font-black text-soch-blue uppercase tracking-widest mb-4">The Facts</div>
                 <p className="text-lg leading-relaxed text-navy-deep font-medium">
                   {story.summary}
                 </p>
               </div>
 
               {story.localImpacts && story.localImpacts.length > 0 && (
-                <div className="mb-8 p-6 bg-offfeed-blue/5 rounded-3xl border border-offfeed-blue/10">
+                <div className="mb-8 p-6 bg-soch-blue/5 rounded-3xl border border-soch-blue/10">
                   <div className="flex items-center gap-2 mb-4">
-                    <Zap size={16} className="text-offfeed-blue" />
-                    <div className="text-xs font-black text-offfeed-blue uppercase tracking-widest">Local Impact AI</div>
+                    <Zap size={16} className="text-soch-blue" />
+                    <div className="text-xs font-black text-soch-blue uppercase tracking-widest">Local Impact AI</div>
                   </div>
                   <div className="space-y-4">
                     {story.localImpacts.map((impact, idx) => (
@@ -495,19 +416,19 @@ const StoryView = ({
               className="space-y-6"
             >
               <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                <div className="text-xs font-black text-offfeed-blue uppercase tracking-widest mb-3">{story.perspectives.panelA.label}</div>
+                <div className="text-xs font-black text-soch-blue uppercase tracking-widest mb-3">{story.perspectives.panelA.label}</div>
                 <p className="text-slate-700 leading-relaxed mb-4">{story.perspectives.panelA.content}</p>
                 <div className="text-[10px] font-bold text-slate-400 uppercase">Source: {story.perspectives.panelA.source}</div>
               </div>
 
               <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                <div className="text-xs font-black text-offfeed-blue uppercase tracking-widest mb-3">{story.perspectives.panelB.label}</div>
+                <div className="text-xs font-black text-soch-blue uppercase tracking-widest mb-3">{story.perspectives.panelB.label}</div>
                 <p className="text-slate-700 leading-relaxed mb-4">{story.perspectives.panelB.content}</p>
                 <div className="text-[10px] font-bold text-slate-400 uppercase">Source: {story.perspectives.panelB.source}</div>
               </div>
 
               <p className="text-center text-[10px] text-slate-400 italic px-8">
-                OffFeed does not take a position. These panels present the strongest case each side makes.
+                Soch does not take a position. These panels present the strongest case each side makes.
               </p>
             </motion.div>
           )}
@@ -532,19 +453,19 @@ const StoryView = ({
 
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4">
         <div 
-          onClick={onAskO}
+          onClick={onAskSochX}
           className="bg-slate-50 rounded-full py-3 px-6 flex items-center gap-3 cursor-pointer border border-slate-100"
         >
-          <div className="w-6 h-6 bg-offfeed-blue rounded-lg flex items-center justify-center text-white font-black text-[10px]">O</div>
-          <span className="text-slate-400 font-bold text-sm">Ask O anything about this story...</span>
-          <Send size={18} className="ml-auto text-offfeed-blue" />
+          <div className="w-6 h-6 bg-soch-blue rounded-lg flex items-center justify-center text-white font-black text-[10px]">X</div>
+          <span className="text-slate-400 font-bold text-sm">Ask Soch X anything about this story...</span>
+          <Send size={18} className="ml-auto text-soch-blue" />
         </div>
       </div>
     </motion.div>
   );
 };
 
-// --- Ask O Chat Drawer ---
+// --- Ask Soch X Chat Drawer ---
 
 const DigitalRupeeTracker = () => (
   <div className="bg-navy-deep rounded-3xl p-6 text-white mb-6 relative overflow-hidden">
@@ -588,14 +509,14 @@ const HimalayanMeltRate = () => (
   </div>
 );
 
-const AskOChat = ({ story, onClose }: { story?: Story; onClose: () => void }) => {
+const AskSochXChat = ({ story, onClose }: { story?: Story; onClose: () => void }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      sender: 'askO',
+      sender: 'askSochX',
       text: story 
         ? "What would you like to know about this story?" 
-        : "Hello! I'm O. How can I help you understand the news today?",
+        : "Hello! I'm Soch X. How can I help you understand the news today?",
       timestamp: 'Just now'
     }
   ]);
@@ -636,7 +557,7 @@ const AskOChat = ({ story, onClose }: { story?: Story; onClose: () => void }) =>
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
       
-      const systemPrompt = `You are 'O', OffFeed's AI thinking partner. 
+      const systemPrompt = `You are 'Soch X', Soch's AI thinking partner. 
       Rules:
       1. Neutrality is absolute. Never take a side.
       2. Cite ALL factual claims in brackets like [Source: Name, Date].
@@ -670,17 +591,17 @@ const AskOChat = ({ story, onClose }: { story?: Story; onClose: () => void }) =>
 
       const aiMsg: Message = {
         id: `ai-${Date.now()}-${Math.random()}`,
-        sender: 'askO',
+        sender: 'askSochX',
         text: aiText,
         timestamp: 'Just now',
         sources: foundSources.length > 0 ? [...new Set(foundSources)] : undefined
       };
       setMessages(prev => [...prev, aiMsg]);
     } catch (error) {
-      console.error("Ask O Error:", error);
+      console.error("Ask Soch X Error:", error);
       const errorMsg: Message = {
         id: `error-${Date.now()}`,
-        sender: 'askO',
+        sender: 'askSochX',
         text: "I'm having trouble connecting to my intelligence core right now. Please try again in a moment.",
         timestamp: 'Just now'
       };
@@ -708,9 +629,9 @@ const AskOChat = ({ story, onClose }: { story?: Story; onClose: () => void }) =>
       <div className="bg-white rounded-t-[40px] h-[85vh] flex flex-col overflow-hidden shadow-2xl">
         <div className="p-6 flex justify-between items-center border-b border-slate-50 sticky top-0 bg-white z-10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-offfeed-blue rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-lg shadow-offfeed-blue/20">O</div>
+            <div className="w-10 h-10 bg-soch-blue rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-lg shadow-soch-blue/20">X</div>
             <div>
-              <div className="font-black text-lg">Ask O</div>
+              <div className="font-black text-lg">Ask Soch X</div>
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Thinking Partner</div>
             </div>
           </div>
@@ -720,7 +641,7 @@ const AskOChat = ({ story, onClose }: { story?: Story; onClose: () => void }) =>
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50">
           {messages.map(m => (
             <div key={m.id} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] ${m.sender === 'user' ? 'bg-offfeed-blue text-white rounded-3xl rounded-tr-none' : 'bg-white border border-slate-100 text-navy-deep rounded-3xl rounded-tl-none'} p-5 shadow-sm`}>
+              <div className={`max-w-[85%] ${m.sender === 'user' ? 'bg-soch-blue text-white rounded-3xl rounded-tr-none' : 'bg-white border border-slate-100 text-navy-deep rounded-3xl rounded-tl-none'} p-5 shadow-sm`}>
                 <div className="text-sm leading-relaxed font-medium">
                   <Markdown>{m.text}</Markdown>
                 </div>
@@ -729,7 +650,7 @@ const AskOChat = ({ story, onClose }: { story?: Story; onClose: () => void }) =>
                     <div className="text-[10px] font-black text-slate-400 uppercase mb-2">Sources Cited</div>
                     <div className="flex flex-wrap gap-2">
                       {m.sources.map(s => (
-                        <span key={`ai-source-${s}`} className="text-[10px] font-bold text-offfeed-blue bg-offfeed-blue/5 px-2 py-1 rounded-full">{s}</span>
+                        <span key={`ai-source-${s}`} className="text-[10px] font-bold text-soch-blue bg-soch-blue/5 px-2 py-1 rounded-full">{s}</span>
                       ))}
                     </div>
                   </div>
@@ -742,9 +663,9 @@ const AskOChat = ({ story, onClose }: { story?: Story; onClose: () => void }) =>
             <div className="flex justify-start">
               <div className="bg-white border border-slate-100 text-navy-deep rounded-3xl rounded-tl-none p-5 flex items-center gap-2 shadow-sm">
                 <div className="flex gap-1">
-                  <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1 }} className="w-1.5 h-1.5 bg-offfeed-blue rounded-full" />
-                  <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-1.5 h-1.5 bg-offfeed-blue rounded-full" />
-                  <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-1.5 h-1.5 bg-offfeed-blue rounded-full" />
+                  <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1 }} className="w-1.5 h-1.5 bg-soch-blue rounded-full" />
+                  <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-1.5 h-1.5 bg-soch-blue rounded-full" />
+                  <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-1.5 h-1.5 bg-soch-blue rounded-full" />
                 </div>
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Thinking...</span>
               </div>
@@ -758,7 +679,7 @@ const AskOChat = ({ story, onClose }: { story?: Story; onClose: () => void }) =>
                 <button 
                   key={`suggest-${i}`}
                   onClick={() => handleSend(s)}
-                  className="text-left p-4 rounded-2xl bg-white border border-slate-100 text-sm font-bold text-navy-deep hover:bg-offfeed-blue/5 hover:border-offfeed-blue/20 transition-all shadow-sm"
+                  className="text-left p-4 rounded-2xl bg-white border border-slate-100 text-sm font-bold text-navy-deep hover:bg-soch-blue/5 hover:border-soch-blue/20 transition-all shadow-sm"
                 >
                   {s}
                 </button>
@@ -785,19 +706,19 @@ const AskOChat = ({ story, onClose }: { story?: Story; onClose: () => void }) =>
               </div>
             )}
           </div>
-          <div className="flex items-center gap-3 bg-slate-50 rounded-3xl p-2 pl-4 border-2 border-slate-100 focus-within:border-offfeed-blue transition-all">
+          <div className="flex items-center gap-3 bg-slate-50 rounded-3xl p-2 pl-4 border-2 border-slate-100 focus-within:border-soch-blue transition-all">
             <input 
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSend()}
-              placeholder="Ask O anything..."
+              placeholder="Ask Soch X anything..."
               className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-bold text-navy-deep"
               disabled={isLoading}
             />
             <button 
               onClick={() => handleSend()} 
               disabled={isLoading || !input.trim()}
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white transition-all ${isLoading || !input.trim() ? 'bg-slate-300' : 'bg-offfeed-blue shadow-lg shadow-offfeed-blue/20'}`}
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white transition-all ${isLoading || !input.trim() ? 'bg-slate-300' : 'bg-soch-blue shadow-lg shadow-soch-blue/20'}`}
             >
               <Send size={20} />
             </button>
@@ -810,11 +731,11 @@ const AskOChat = ({ story, onClose }: { story?: Story; onClose: () => void }) =>
 
 // --- Discover Tab ---
 
-const DiscoverTab = ({ stories, onOpenStory, onAskO }: { stories: Story[]; onOpenStory: (s: Story) => void; onAskO: (s: Story) => void }) => {
+const DiscoverTab = ({ onOpenStory, onAskSochX }: { onOpenStory: (s: Story) => void; onAskSochX: (s: Story) => void }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'clips' | 'briefs'>('all');
 
-  const filteredStories = stories.filter(s => {
+  const filteredStories = SEED_STORIES.filter(s => {
     const matchesSearch = s.headline.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          s.topic.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = activeFilter === 'all' || 
@@ -834,7 +755,7 @@ const DiscoverTab = ({ stories, onOpenStory, onAskO }: { stories: Story[]; onOpe
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           placeholder="Search topics, sources, or stories..."
-          className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-12 pr-4 font-bold text-navy-deep focus:ring-2 focus:ring-offfeed-blue/20 transition-all"
+          className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-12 pr-4 font-bold text-navy-deep focus:ring-2 focus:ring-soch-blue/20 transition-all"
         />
       </div>
 
@@ -844,7 +765,7 @@ const DiscoverTab = ({ stories, onOpenStory, onAskO }: { stories: Story[]; onOpe
             key={`filter-${filter}`}
             onClick={() => setActiveFilter(filter as any)}
             className={`px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest transition-all ${
-              activeFilter === filter ? 'bg-offfeed-blue text-white' : 'bg-slate-100 text-slate-400'
+              activeFilter === filter ? 'bg-soch-blue text-white' : 'bg-slate-100 text-slate-400'
             }`}
           >
             {filter}
@@ -875,15 +796,15 @@ const DiscoverTab = ({ stories, onOpenStory, onAskO }: { stories: Story[]; onOpe
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="text-[10px] font-black text-offfeed-blue uppercase tracking-widest mb-1">{story.topic}</div>
+                  <div className="text-[10px] font-black text-soch-blue uppercase tracking-widest mb-1">{story.topic}</div>
                   <h4 className="font-black text-sm leading-tight mb-2 line-clamp-2">{story.headline}</h4>
                   <div className="text-[10px] font-bold text-slate-400 uppercase">{story.source}</div>
                 </div>
               </div>
             </div>
             <button 
-              onClick={(e) => { e.stopPropagation(); onAskO(story); }}
-              className="absolute -bottom-2 -right-2 w-10 h-10 bg-white border border-slate-100 rounded-2xl shadow-lg flex items-center justify-center text-offfeed-blue hover:scale-110 transition-all z-10"
+              onClick={(e) => { e.stopPropagation(); onAskSochX(story); }}
+              className="absolute -bottom-2 -right-2 w-10 h-10 bg-white border border-slate-100 rounded-2xl shadow-lg flex items-center justify-center text-soch-blue hover:scale-110 transition-all z-10"
             >
               <Zap size={18} />
             </button>
@@ -927,7 +848,7 @@ const SimulatorTab = () => {
         <div className="p-6 flex justify-between items-center border-b border-white/10">
           <button onClick={() => setSelectedScenario(null)} className="p-2 bg-white/10 rounded-full"><ArrowLeft /></button>
           <div className="text-center">
-            <div className="text-[10px] font-black uppercase tracking-widest text-offfeed-blue">Simulator Arena</div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-soch-blue">Simulator Arena</div>
             <div className="font-black">Scenario: {selectedScenario.id.toUpperCase()}</div>
           </div>
           <div className="w-10" />
@@ -942,10 +863,10 @@ const SimulatorTab = () => {
               <div key={`param-${param.id}`} className="space-y-4">
                 <div className="flex justify-between items-center">
                   <label className="text-sm font-black uppercase tracking-widest opacity-60">{param.label}</label>
-                  {param.type === 'slider' && <span className="text-offfeed-blue font-black">{param.defaultValue}</span>}
+                  {param.type === 'slider' && <span className="text-soch-blue font-black">{param.defaultValue}</span>}
                 </div>
                 {param.type === 'slider' && (
-                  <input type="range" min={param.min} max={param.max} step={0.1} className="w-full accent-offfeed-blue" />
+                  <input type="range" min={param.min} max={param.max} step={0.1} className="w-full accent-soch-blue" />
                 )}
                 {param.type === 'select' && (
                   <div className="grid grid-cols-1 gap-2">
@@ -953,7 +874,7 @@ const SimulatorTab = () => {
                       <button 
                         key={`opt-${opt}`}
                         className={`p-4 rounded-2xl border-2 text-left font-bold transition-all ${
-                          opt === param.defaultValue ? 'border-offfeed-blue bg-offfeed-blue/10 text-white' : 'border-white/5 bg-white/5 text-slate-400'
+                          opt === param.defaultValue ? 'border-soch-blue bg-soch-blue/10 text-white' : 'border-white/5 bg-white/5 text-slate-400'
                         }`}
                       >
                         {opt}
@@ -964,7 +885,7 @@ const SimulatorTab = () => {
                 {param.type === 'toggle' && (
                   <button className="w-full p-4 rounded-2xl border-2 border-white/5 bg-white/5 flex justify-between items-center">
                     <span className="font-bold text-slate-400">Enabled</span>
-                    <div className={`w-12 h-6 rounded-full p-1 transition-all ${param.defaultValue ? 'bg-offfeed-blue' : 'bg-slate-700'}`}>
+                    <div className={`w-12 h-6 rounded-full p-1 transition-all ${param.defaultValue ? 'bg-soch-blue' : 'bg-slate-700'}`}>
                       <div className={`w-4 h-4 bg-white rounded-full transition-all ${param.defaultValue ? 'translate-x-6' : 'translate-x-0'}`} />
                     </div>
                   </button>
@@ -975,7 +896,7 @@ const SimulatorTab = () => {
 
           {isSimulating ? (
             <div className="py-12 flex flex-col items-center text-center">
-              <div className="w-16 h-16 border-4 border-offfeed-blue border-t-transparent rounded-full animate-spin mb-6" />
+              <div className="w-16 h-16 border-4 border-soch-blue border-t-transparent rounded-full animate-spin mb-6" />
               <h3 className="font-black text-xl mb-2">Running Complex Simulation...</h3>
               <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">Calculating multi-variable outcomes</p>
             </div>
@@ -1022,7 +943,7 @@ const SimulatorTab = () => {
             <div className="absolute bottom-0 left-0 right-0 p-8">
               <h3 className="text-3xl font-black mb-3 leading-tight">{scenario.title}</h3>
               <p className="text-sm text-slate-300 mb-6 line-clamp-2">{scenario.description}</p>
-              <div className="flex items-center gap-2 text-offfeed-blue font-black text-xs uppercase tracking-widest">
+              <div className="flex items-center gap-2 text-soch-blue font-black text-xs uppercase tracking-widest">
                 Enter Simulation <ChevronRight size={16} />
               </div>
             </div>
@@ -1106,17 +1027,17 @@ const VerifyTab = () => {
             
             <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
               <div className="flex justify-between items-start mb-4">
-                <div className="px-3 py-1 bg-offfeed-blue/10 text-offfeed-blue text-[10px] font-black rounded-full uppercase">Open</div>
+                <div className="px-3 py-1 bg-soch-blue/10 text-soch-blue text-[10px] font-black rounded-full uppercase">Open</div>
                 <div className="text-[10px] font-bold text-slate-400">2h ago</div>
               </div>
-              <div className="bg-slate-50 p-4 rounded-2xl border-l-4 border-offfeed-blue mb-4">
+              <div className="bg-slate-50 p-4 rounded-2xl border-l-4 border-soch-blue mb-4">
                 <p className="text-sm font-bold italic">"The GDP growth rate for Q3 has been revised downwards to 4.2%."</p>
               </div>
-              <div className="text-xs font-bold text-offfeed-blue mb-6 flex items-center gap-1">
+              <div className="text-xs font-bold text-soch-blue mb-6 flex items-center gap-1">
                 View Article <ExternalLink size={10} />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <button className="py-4 bg-offfeed-blue text-white rounded-2xl font-black text-sm shadow-lg shadow-offfeed-blue/20">Valid Flag</button>
+                <button className="py-4 bg-soch-blue text-white rounded-2xl font-black text-sm shadow-lg shadow-soch-blue/20">Valid Flag</button>
                 <button className="py-4 border-2 border-slate-100 text-slate-400 rounded-2xl font-black text-sm">Invalid Flag</button>
               </div>
             </div>
@@ -1124,10 +1045,10 @@ const VerifyTab = () => {
         ) : (
           <div className="space-y-6">
             <div className="flex gap-4 mb-6">
-              <button className="flex-1 py-3 border-2 border-offfeed-blue bg-offfeed-blue/5 text-offfeed-blue rounded-2xl font-bold text-sm">Paste URL / Text</button>
+              <button className="flex-1 py-3 border-2 border-soch-blue bg-soch-blue/5 text-soch-blue rounded-2xl font-bold text-sm">Paste URL / Text</button>
             </div>
 
-            <div className="bg-slate-50 rounded-3xl p-4 border-2 border-slate-200 focus-within:border-offfeed-blue transition-all">
+            <div className="bg-slate-50 rounded-3xl p-4 border-2 border-slate-200 focus-within:border-soch-blue transition-all">
               <textarea 
                 value={factCheckInput}
                 onChange={e => setFactCheckInput(e.target.value)}
@@ -1146,7 +1067,7 @@ const VerifyTab = () => {
 
             {isChecking && (
               <div className="py-12 flex flex-col items-center text-center">
-                <div className="w-16 h-16 border-4 border-offfeed-blue border-t-transparent rounded-full animate-spin mb-6" />
+                <div className="w-16 h-16 border-4 border-soch-blue border-t-transparent rounded-full animate-spin mb-6" />
                 <h3 className="font-black text-lg mb-2">Analyzing Primary Sources...</h3>
                 <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Tracing claims to origin</p>
               </div>
@@ -1216,13 +1137,13 @@ const ProfileTab = () => {
       </div>
 
       <div className="flex flex-col items-center mb-12">
-        <div className="w-24 h-24 rounded-full bg-slate-200 mb-4 border-4 border-offfeed-blue/10" />
+        <div className="w-24 h-24 rounded-full bg-slate-200 mb-4 border-4 border-soch-blue/10" />
         <h2 className="text-2xl font-black">{DEFAULT_USER.username}</h2>
-        <p className="text-offfeed-blue font-bold text-sm uppercase tracking-widest">{DEFAULT_USER.useCase}</p>
+        <p className="text-soch-blue font-bold text-sm uppercase tracking-widest">{DEFAULT_USER.useCase}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-12">
-        <div className="bg-offfeed-blue p-6 rounded-[32px] text-white shadow-xl shadow-offfeed-blue/20">
+        <div className="bg-soch-blue p-6 rounded-[32px] text-white shadow-xl shadow-soch-blue/20">
           <div className="text-[10px] font-black uppercase tracking-widest mb-2 opacity-70">Credibility Score</div>
           <div className="text-4xl font-black mb-1">{DEFAULT_USER.credibilityScore}</div>
           <div className="text-[10px] font-bold bg-white/20 inline-block px-2 py-1 rounded-full">+12% this month</div>
@@ -1250,7 +1171,7 @@ const ProfileTab = () => {
                 <span>{item.percentage}%</span>
               </div>
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-offfeed-blue" style={{ width: `${item.percentage}%` }} />
+                <div className="h-full bg-soch-blue" style={{ width: `${item.percentage}%` }} />
               </div>
             </div>
           ))}
@@ -1261,7 +1182,7 @@ const ProfileTab = () => {
             <div className="relative w-20 h-20 mb-3">
               <svg className="w-full h-full" viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r="16" fill="none" className="stroke-slate-100" strokeWidth="4" />
-                <circle cx="18" cy="18" r="16" fill="none" className="stroke-offfeed-blue" strokeWidth="4" strokeDasharray="65, 100" strokeLinecap="round" />
+                <circle cx="18" cy="18" r="16" fill="none" className="stroke-soch-blue" strokeWidth="4" strokeDasharray="65, 100" strokeLinecap="round" />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center text-xs font-black">65%</div>
             </div>
@@ -1269,8 +1190,8 @@ const ProfileTab = () => {
           </div>
           <div className="space-y-4">
             <div>
-              <div className="text-xl font-black">{DEFAULT_USER.consumption.askOConversations}</div>
-              <div className="text-[10px] font-black text-slate-400 uppercase">Ask O Conv.</div>
+              <div className="text-xl font-black">{DEFAULT_USER.consumption.askSochXConversations}</div>
+              <div className="text-[10px] font-black text-slate-400 uppercase">Ask Soch X Conv.</div>
             </div>
             <div>
               <div className="text-xl font-black">{DEFAULT_USER.consumption.factChecksRun}</div>
@@ -1312,7 +1233,7 @@ const Messenger = ({ onClose }: { onClose: () => void }) => {
               </div>
               <div className="flex justify-between items-center">
                 <p className="text-sm text-slate-500 line-clamp-1">{chat.msg}</p>
-                {chat.unread && <div className="w-2 h-2 bg-offfeed-blue rounded-full" />}
+                {chat.unread && <div className="w-2 h-2 bg-soch-blue rounded-full" />}
               </div>
             </div>
           </div>
@@ -1369,7 +1290,7 @@ const SideMenu = ({ isOpen, onClose, onNavigate }: { isOpen: boolean; onClose: (
                   }}
                   className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${item.highlight ? 'bg-navy-deep text-white shadow-lg' : 'hover:bg-slate-50 text-navy-deep'}`}
                 >
-                  <item.icon size={20} className={item.highlight ? 'text-offfeed-blue' : ''} />
+                  <item.icon size={20} className={item.highlight ? 'text-soch-blue' : ''} />
                   {item.label}
                 </button>
               ))}
@@ -1410,11 +1331,11 @@ const BriefMe = () => {
 
   return (
     <div className="bg-white rounded-[40px] border border-slate-100 p-8 mb-8 shadow-sm overflow-hidden relative">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-offfeed-blue/5 blur-3xl rounded-full -mr-16 -mt-16" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-soch-blue/5 blur-3xl rounded-full -mr-16 -mt-16" />
       
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 bg-navy-deep rounded-2xl flex items-center justify-center text-white">
-          <Zap size={20} className="text-offfeed-blue" />
+          <Zap size={20} className="text-soch-blue" />
         </div>
         <div>
           <h2 className="text-2xl font-black">Brief Me</h2>
@@ -1453,7 +1374,7 @@ const BriefMe = () => {
 
       {request.status === 'generating' && (
         <div className="py-12 flex flex-col items-center text-center">
-          <div className="w-16 h-16 border-4 border-offfeed-blue border-t-transparent rounded-full animate-spin mb-6" />
+          <div className="w-16 h-16 border-4 border-soch-blue border-t-transparent rounded-full animate-spin mb-6" />
           <h3 className="font-black text-lg mb-2">Processing Intent...</h3>
           <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Framing news for your context</p>
         </div>
@@ -1480,11 +1401,11 @@ const BriefMe = () => {
 const MorningBrief = ({ stories, onOpen }: { stories: Story[]; onOpen: (story: Story) => void }) => {
   return (
     <div className="bg-navy-deep rounded-[40px] p-8 mb-8 text-white relative overflow-hidden shadow-2xl">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-offfeed-blue/20 blur-3xl rounded-full -mr-16 -mt-16" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-soch-blue/20 blur-3xl rounded-full -mr-16 -mt-16" />
       
       <div className="flex justify-between items-start mb-8">
         <div>
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-offfeed-blue mb-2">Daily Briefing</div>
+          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-soch-blue mb-2">Daily Briefing</div>
           <h2 className="text-3xl font-black leading-tight">The Morning<br />Brief</h2>
         </div>
         <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 text-center">
@@ -1500,9 +1421,9 @@ const MorningBrief = ({ stories, onOpen }: { stories: Story[]; onOpen: (story: S
             onClick={() => onOpen(story)}
             className="flex items-center gap-4 p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 transition-all cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-full bg-offfeed-blue flex items-center justify-center font-black text-sm">{idx + 1}</div>
+            <div className="w-8 h-8 rounded-full bg-soch-blue flex items-center justify-center font-black text-sm">{idx + 1}</div>
             <div className="flex-1">
-              <div className="text-[8px] font-black uppercase tracking-widest text-offfeed-blue mb-1">{story.topic}</div>
+              <div className="text-[8px] font-black uppercase tracking-widest text-soch-blue mb-1">{story.topic}</div>
               <div className="text-sm font-bold line-clamp-1">{story.headline}</div>
             </div>
             <ChevronRight size={16} className="opacity-40" />
@@ -1522,12 +1443,12 @@ const MorningBrief = ({ stories, onOpen }: { stories: Story[]; onOpen: (story: S
 const SavedArticles = ({ 
   stories, 
   onOpen, 
-  onAskO, 
+  onAskSochX, 
   onToggleSave 
 }: { 
   stories: Story[]; 
   onOpen: (story: Story) => void; 
-  onAskO: (story: Story) => void;
+  onAskSochX: (story: Story) => void;
   onToggleSave: (id: string) => void;
 }) => {
   return (
@@ -1546,7 +1467,7 @@ const SavedArticles = ({
                 <ClipCard 
                   story={story} 
                   onOpen={() => onOpen(story)} 
-                  onAskO={() => onAskO(story)} 
+                  onAskSochX={() => onAskSochX(story)} 
                   isSaved={true}
                   onToggleSave={() => onToggleSave(story.id)}
                 />
@@ -1554,7 +1475,7 @@ const SavedArticles = ({
                 <BriefCard 
                   story={story} 
                   onOpen={() => onOpen(story)} 
-                  onAskO={() => onAskO(story)} 
+                  onAskSochX={() => onAskSochX(story)} 
                   isSaved={true}
                   onToggleSave={() => onToggleSave(story.id)}
                 />
@@ -1573,43 +1494,11 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [activeTab, setActiveTab] = useState<'home' | 'discover' | 'verify' | 'simulator' | 'profile' | 'saved'>('home');
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
-  const [isAskOOpen, setIsAskOOpen] = useState(false);
+  const [isAskSochXOpen, setIsAskSochXOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMessengerOpen, setIsMessengerOpen] = useState(false);
   const [savedStoryIds, setSavedStoryIds] = useState<string[]>([]);
   const [showMorningBrief, setShowMorningBrief] = useState(true);
-  const [stories, setStories] = useState<Story[]>([]);
-  const [isLoadingStories, setIsLoadingStories] = useState(true);
-
-  useEffect(() => {
-    const fetchAllFeeds = async () => {
-      setIsLoadingStories(true);
-      try {
-        const allStories: Story[] = [];
-        
-        for (const feed of RSS_FEEDS) {
-          try {
-            const encodedUrl = encodeURIComponent(feed.url);
-            const response = await fetch(`https://api.allorigins.win/get?url=${encodedUrl}`);
-            const data = await response.json();
-            const parsed = parseRSS(data.contents, feed.name);
-            allStories.push(...parsed);
-          } catch (err) {
-            console.error(`Error fetching ${feed.name}:`, err);
-          }
-        }
-        
-        // Sort by date (if possible) or just shuffle
-        setStories(allStories.sort(() => Math.random() - 0.5));
-      } catch (error) {
-        console.error("Error in fetchAllFeeds:", error);
-      } finally {
-        setIsLoadingStories(false);
-      }
-    };
-
-    fetchAllFeeds();
-  }, []);
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
@@ -1625,7 +1514,7 @@ export default function App() {
     return <Onboarding onComplete={handleOnboardingComplete} />;
   }
 
-  const savedStories = stories.filter(s => savedStoryIds.includes(s.id));
+  const savedStories = SEED_STORIES.filter(s => savedStoryIds.includes(s.id));
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-white flex flex-col relative overflow-x-hidden">
@@ -1649,9 +1538,9 @@ export default function App() {
               </button>
             </div>
 
-            {showMorningBrief && stories.length > 0 && (
+            {showMorningBrief && (
               <MorningBrief 
-                stories={stories} 
+                stories={SEED_STORIES} 
                 onOpen={(s) => setSelectedStory(s)} 
               />
             )}
@@ -1661,34 +1550,27 @@ export default function App() {
             <DigitalRupeeTracker />
             <HimalayanMeltRate />
 
-            {isLoadingStories ? (
-              <div className="py-12 flex flex-col items-center text-center">
-                <div className="w-12 h-12 border-4 border-offfeed-blue border-t-transparent rounded-full animate-spin mb-4" />
-                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Fetching real-time news...</p>
+            {SEED_STORIES.map(story => (
+              <div key={`story-${story.id}`}>
+                {story.type === 'clip' ? (
+                  <ClipCard 
+                    story={story} 
+                    onOpen={() => setSelectedStory(story)} 
+                    onAskSochX={() => { setSelectedStory(story); setIsAskSochXOpen(true); }} 
+                    isSaved={savedStoryIds.includes(story.id)}
+                    onToggleSave={() => toggleSave(story.id)}
+                  />
+                ) : (
+                  <BriefCard 
+                    story={story} 
+                    onOpen={() => setSelectedStory(story)} 
+                    onAskSochX={() => { setSelectedStory(story); setIsAskSochXOpen(true); }} 
+                    isSaved={savedStoryIds.includes(story.id)}
+                    onToggleSave={() => toggleSave(story.id)}
+                  />
+                )}
               </div>
-            ) : (
-              stories.map(story => (
-                <div key={`story-${story.id}`}>
-                  {story.type === 'clip' ? (
-                    <ClipCard 
-                      story={story} 
-                      onOpen={() => setSelectedStory(story)} 
-                      onAskO={() => { setSelectedStory(story); setIsAskOOpen(true); }} 
-                      isSaved={savedStoryIds.includes(story.id)}
-                      onToggleSave={() => toggleSave(story.id)}
-                    />
-                  ) : (
-                    <BriefCard 
-                      story={story} 
-                      onOpen={() => setSelectedStory(story)} 
-                      onAskO={() => { setSelectedStory(story); setIsAskOOpen(true); }} 
-                      isSaved={savedStoryIds.includes(story.id)}
-                      onToggleSave={() => toggleSave(story.id)}
-                    />
-                  )}
-                </div>
-              ))
-            )}
+            ))}
 
             <Button variant="secondary" className="w-full py-5 mb-24">Load More</Button>
           </div>
@@ -1696,9 +1578,8 @@ export default function App() {
 
         {activeTab === 'discover' && (
           <DiscoverTab 
-            stories={stories}
             onOpenStory={(s) => setSelectedStory(s)} 
-            onAskO={(s) => { setSelectedStory(s); setIsAskOOpen(true); }} 
+            onAskSochX={(s) => { setSelectedStory(s); setIsAskSochXOpen(true); }} 
           />
         )}
         {activeTab === 'verify' && <VerifyTab />}
@@ -1708,7 +1589,7 @@ export default function App() {
           <SavedArticles 
             stories={savedStories} 
             onOpen={(s) => setSelectedStory(s)} 
-            onAskO={(s) => { setSelectedStory(s); setIsAskOOpen(true); }} 
+            onAskSochX={(s) => { setSelectedStory(s); setIsAskSochXOpen(true); }} 
             onToggleSave={toggleSave}
           />
         )}
@@ -1718,43 +1599,43 @@ export default function App() {
       <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/80 backdrop-blur-md border-t border-slate-100 px-8 py-4 flex justify-between items-center z-40">
         <button 
           onClick={() => setActiveTab('home')}
-          className={`flex flex-col items-center gap-1 ${activeTab === 'home' ? 'text-offfeed-blue' : 'text-slate-400'}`}
+          className={`flex flex-col items-center gap-1 ${activeTab === 'home' ? 'text-soch-blue' : 'text-slate-400'}`}
         >
           <Home size={24} />
           <span className="text-[10px] font-black uppercase tracking-widest">Feed</span>
         </button>
         <button 
           onClick={() => setActiveTab('discover')}
-          className={`flex flex-col items-center gap-1 ${activeTab === 'discover' ? 'text-offfeed-blue' : 'text-slate-400'}`}
+          className={`flex flex-col items-center gap-1 ${activeTab === 'discover' ? 'text-soch-blue' : 'text-slate-400'}`}
         >
           <Search size={24} />
           <span className="text-[10px] font-black uppercase tracking-widest">Discover</span>
         </button>
         <button 
           onClick={() => setActiveTab('verify')}
-          className={`flex flex-col items-center gap-1 ${activeTab === 'verify' ? 'text-offfeed-blue' : 'text-slate-400'}`}
+          className={`flex flex-col items-center gap-1 ${activeTab === 'verify' ? 'text-soch-blue' : 'text-slate-400'}`}
         >
           <ShieldCheck size={24} />
           <span className="text-[10px] font-black uppercase tracking-widest">Verify</span>
         </button>
         <button 
           onClick={() => setActiveTab('simulator')}
-          className={`flex flex-col items-center gap-1 ${activeTab === 'simulator' ? 'text-offfeed-blue' : 'text-slate-400'}`}
+          className={`flex flex-col items-center gap-1 ${activeTab === 'simulator' ? 'text-soch-blue' : 'text-slate-400'}`}
         >
           <Zap size={24} />
           <span className="text-[10px] font-black uppercase tracking-widest">Simulator</span>
         </button>
       </nav>
 
-      {/* Ask O Floating Button */}
+      {/* Ask Soch X Floating Button */}
       <motion.button 
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        onClick={() => setIsAskOOpen(true)}
-        className="fixed bottom-24 right-6 z-50 w-16 h-16 bg-offfeed-blue rounded-full shadow-2xl flex flex-col items-center justify-center text-white"
+        onClick={() => setIsAskSochXOpen(true)}
+        className="fixed bottom-24 right-6 z-50 w-16 h-16 bg-soch-blue rounded-full shadow-2xl flex flex-col items-center justify-center text-white"
       >
         <MessageCircle size={24} />
-        <span className="text-[8px] font-black uppercase mt-1">Ask O</span>
+        <span className="text-[8px] font-black uppercase mt-1">Ask Soch X</span>
       </motion.button>
 
       {/* Overlays */}
@@ -1763,15 +1644,15 @@ export default function App() {
           <StoryView 
             story={selectedStory} 
             onClose={() => setSelectedStory(null)} 
-            onAskO={() => setIsAskOOpen(true)} 
+            onAskSochX={() => setIsAskSochXOpen(true)} 
             isSaved={savedStoryIds.includes(selectedStory.id)}
             onToggleSave={() => toggleSave(selectedStory.id)}
           />
         )}
-        {isAskOOpen && (
-          <AskOChat 
+        {isAskSochXOpen && (
+          <AskSochXChat 
             story={selectedStory || undefined} 
-            onClose={() => setIsAskOOpen(false)} 
+            onClose={() => setIsAskSochXOpen(false)} 
           />
         )}
         {isMessengerOpen && (

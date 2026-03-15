@@ -78,7 +78,7 @@ export interface SimulationOutcome {
 
 export interface Message {
   id: string;
-  sender: 'user' | 'askO';
+  sender: 'user' | 'askSochX';
   text: string;
   timestamp: string;
   sources?: string[];
@@ -107,7 +107,7 @@ export interface UserProfile {
     mostRead: { topic: Topic; percentage: number }[];
     clipsVsBriefs?: { clips: number; briefs: number };
     formatSplit?: { clips: number; briefs: number };
-    askOConversations: number;
+    askSochXConversations: number;
     factChecksRun: number;
     readingStreak?: number;
     diversityScore?: number;
